@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>April 15 Booking Guide — Ross Lake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:          #1a1c18;
+    --paper:        #f4f0e8;
+    --muted:        #6b6b5e;
+    --accent:       #2d5a3d;
+    --accent-light: #4a8c60;
+    --water:        #3b7cb8;
+    --gold:         #c8902a;
+    --rule:         #d4cfc0;
+    --card-bg:      #faf7f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.5;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  /* MASTHEAD */
+  .masthead {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2rem 1.25rem 1.75rem;
+    text-align: center;
+  }
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-bottom: 0.5rem;
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.25rem;
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 0.4rem;
+  }
+  .sub {
+    font-size: 0.9rem;
+    color: rgba(244,240,232,0.6);
+    font-weight: 300;
+  }
+
+  /* INSTRUCTION STRIP */
+  .instruction {
+    background: var(--accent);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* PARTY TOGGLE */
+  .party-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--card-bg);
+  }
+  .party-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .toggle-group { display: flex; gap: 0.4rem; }
+  .toggle-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--paper);
+    color: var(--muted);
+    cursor: pointer;
+    min-height: 36px;
+  }
+  .toggle-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .party-note {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--rule);
+  }
+  .party-note.hidden { display: none; }
+
+  /* SECTION HEADER */
+  .section-header {
+    padding: 0.9rem 1.25rem 0.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-top: 1px solid var(--rule);
+  }
+
+  /* CARDS */
+  .card {
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card-top { border-left: 3px solid var(--gold); }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem 0.9rem 1.1rem;
+    min-height: 56px;
+  }
+  .card-top .card-header { padding-left: 0.85rem; }
+  .card-priority {
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--muted);
+    min-width: 2rem;
+  }
+  .card-info { flex: 1; }
+  .priority-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.45rem;
+    border-radius: 2px;
+    margin-bottom: 0.2rem;
+  }
+  .priority-badge.gold  { background: var(--gold);   color: white; }
+  .priority-badge.green { background: var(--accent); color: white; }
+  .card-dates { font-size: 0.95rem; line-height: 1.3; }
+  .card-trip {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 0.1rem;
+  }
+  .card-chevron {
+    font-size: 0.9rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+    padding-left: 0.4rem;
+    flex-shrink: 0;
+  }
+  .card.open .card-chevron { transform: rotate(180deg); }
+  .card-body { display: none; padding: 0 1.1rem 1.25rem 1.1rem; }
+  .card.open .card-body { display: block; }
+
+  /* ITINERARY BLOCK */
+  .block-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0.8rem 0 0.35rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .itin-row {
+    display: grid;
+    grid-template-columns: 3.2rem 3.5rem 1fr;
+    gap: 0 0.4rem;
+    padding: 0.28rem 0;
+    font-size: 0.83rem;
+    border-bottom: 1px solid rgba(212,207,192,0.5);
+    align-items: baseline;
+  }
+  .itin-row:last-child { border-bottom: none; }
+  .itin-row.summit {
+    background: rgba(45,90,61,0.07);
+    margin: 0 -1.1rem;
+    padding: 0.28rem 1.1rem;
+  }
+  .itin-row.out { color: var(--muted); }
+  .itin-night {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+  .itin-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink);
+  }
+  .itin-camp { font-size: 0.83rem; }
+  .itin-alt  { color: var(--muted); font-size: 0.75rem; }
+
+  /* QUEUE BLOCK */
+  .queue-row {
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(212,207,192,0.5);
+    font-size: 0.83rem;
+    align-items: flex-start;
+  }
+  .queue-row:last-of-type { border-bottom: none; }
+  .queue-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: white;
+    background: var(--accent);
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .queue-body { flex: 1; line-height: 1.35; }
+  .queue-note { display: block; font-size: 0.73rem; color: var(--muted); }
+  .queue-fallback {
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 0.5rem 0 0 1.95rem;
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  /* SEPTEMBER SECTION */
+  .sept-section { border-top: 2px solid var(--rule); margin-top: 0.25rem; }
+  .sept-toggle {
+    width: 100%;
+    background: var(--card-bg);
+    border: none;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    cursor: pointer;
+    text-align: left;
+    letter-spacing: 0.04em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sept-body { display: none; }
+  .sept-body.open { display: block; }
+
+  /* FOOTER */
+  .footer {
+    padding: 1.5rem 1.25rem 4rem;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="eyebrow">April 15 · 7am Lottery Window</div>
+  <h1>Booking Guide</h1>
+  <div class="sub">Ross Lake · Desolation Peak · 7 Nights</div>
+</div>
+
+<!-- INSTRUCTION -->
+<div class="instruction">
+  Start at Priority 1. Check those Desolation dates on rec.gov.
+  If unavailable, move to Priority 2, and so on down the list.
+</div>
+
+<!-- PARTY TOGGLE -->
+<div class="party-bar">
+  <span class="party-label">Party size:</span>
+  <div class="toggle-group">
+    <button class="toggle-btn active" data-size="4" onclick="setParty(4)">4 people</button>
+    <button class="toggle-btn" data-size="2" onclick="setParty(2)">2 people</button>
+  </div>
+</div>
+<div class="party-note" id="party-note">
+  Try <strong>4-person sites</strong> first on rec.gov — site capacity shows when selecting.
+  If no 4-person sites available for a given night, tap "2 people" and rebook.
+</div>
+
+<!-- JULY WINDOW -->
+<div class="section-header">Primary Window — July 2026</div>
+<div id="july-cards"></div>
+
+<!-- SEPTEMBER FALLBACK -->
+<div class="sept-section">
+  <button class="sept-toggle" onclick="toggleSept()" aria-expanded="false" id="sept-btn">
+    <span>September Fallback — Sept 4–20, 2026</span>
+    <span id="sept-chevron">▾</span>
+  </button>
+  <div id="sept-body" class="sept-body">
+    <div class="section-header" style="border-top:none">September Window — prefer earliest available</div>
+    <div id="sept-cards"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <a href="index.html">← Full trip planning doc</a>
+</div>
+
+<script>
+  // ─── Camp reference data ───────────────────────────────────────────
+  const CAMPS = {
+    desolation: { name: 'Desolation Camp',   sites: '1 group max',  note: 'Separate NPS permit — anchor of the trip' },
+    catIsland:  { name: 'Cat Island',         sites: '4 sites',      note: 'Fills fast — book immediately after Desolation' },
+    tenMile:    { name: 'Ten Mile Island',    sites: '3 sites',      note: 'Alt if Cat Island unavailable' },
+    bigBeaver:  { name: 'Big Beaver',         sites: '7 sites',      note: '' },
+    cougar:     { name: 'Cougar Island',      sites: '2 sites',      note: 'Alt for Night 1 if starting late' },
+    rainbow:    { name: 'Rainbow Point',      sites: '3 sites',      note: 'Alt for Night 6' },
+  };
+
+  // ─── Date helpers ──────────────────────────────────────────────────
+  function fmt(date) {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  function addDays(date, n) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + n);
+    return d;
+  }
+
+  // ─── Itinerary + queue builders ────────────────────────────────────
+  function buildItinerary(D) {
+    return [
+      { night: 1, date: addDays(D, -2), primary: CAMPS.bigBeaver,  alt: CAMPS.cougar  },
+      { night: 2, date: addDays(D, -1), primary: CAMPS.catIsland,  alt: CAMPS.tenMile },
+      { night: 3, date: D,              primary: CAMPS.desolation, alt: null           },
+      { night: 4, date: addDays(D,  1), primary: CAMPS.desolation, alt: null           },
+      { night: 5, date: addDays(D,  2), primary: CAMPS.catIsland,  alt: CAMPS.tenMile },
+      { night: 6, date: addDays(D,  3), primary: CAMPS.bigBeaver,  alt: CAMPS.rainbow },
+      { night: 7, date: addDays(D,  4), primary: null,             alt: null, out: true },
+    ];
+  }
+
+  function buildQueue(D) {
+    return [
+      { camp: CAMPS.desolation, dates: `${fmt(D)} & ${fmt(addDays(D,1))}`, note: 'Book first — this is the anchor' },
+      { camp: CAMPS.catIsland,  dates: fmt(addDays(D,-1)),                  note: 'Night 2 staging — fills fast' },
+      { camp: CAMPS.catIsland,  dates: fmt(addDays(D, 2)),                  note: 'Night 5 recovery' },
+      { camp: CAMPS.bigBeaver,  dates: fmt(addDays(D,-2)),                  note: 'Night 1 arrival' },
+      { camp: CAMPS.bigBeaver,  dates: fmt(addDays(D, 3)),                  note: 'Night 6 west shore' },
+    ];
+  }
+
+  // ─── Priority data ─────────────────────────────────────────────────
+  // July: Desolation Night 1 dates in priority order (closest to July 4, expanding out)
+  const JULY_PRIORITIES = [
+    { d1: new Date(2026, 6,  3), label: 'First Choice'  },
+    { d1: new Date(2026, 6,  2), label: 'Second Choice' },
+    { d1: new Date(2026, 6,  4), label: null },
+    { d1: new Date(2026, 6,  1), label: null },
+    { d1: new Date(2026, 6,  5), label: null },
+    { d1: new Date(2026, 5, 30), label: null },
+    { d1: new Date(2026, 6,  6), label: null },
+    { d1: new Date(2026, 5, 29), label: null },
+    { d1: new Date(2026, 6,  7), label: null },
+    { d1: new Date(2026, 6,  8), label: null },
+    { d1: new Date(2026, 6,  9), label: null },
+    { d1: new Date(2026, 6, 10), label: null },
+    { d1: new Date(2026, 6, 11), label: null },
+    { d1: new Date(2026, 6, 12), label: null },
+  ];
+
+  // September: earliest first
+  const SEPT_PRIORITIES = Array.from({ length: 13 }, (_, i) => ({
+    d1: new Date(2026, 8, 4 + i),
+    label: i === 0 ? 'Earliest Available' : null,
+  }));
+
+  // ─── Card renderer ─────────────────────────────────────────────────
+  function renderCard(priority, idx, namespace) {
+    const D = priority.d1;
+    const D2 = addDays(D, 1);
+    const cardId = `card-${namespace}-${idx}`;
+    const isTop = idx < 2;
+
+    const labelHtml = priority.label
+      ? `<span class="priority-badge ${idx === 0 ? 'gold' : 'green'}">${priority.label}</span><br>`
+      : '';
+
+    const itinRows = buildItinerary(D).map(n => {
+      if (n.out) {
+        return `<div class="itin-row out">
+          <span class="itin-night">Day 7</span>
+          <span class="itin-date">${fmt(n.date)}</span>
+          <span class="itin-camp">→ Paddle out to resort</span>
+        </div>`;
+      }
+      const isDesolation = n.primary === CAMPS.desolation;
+      const altHtml = n.alt
+        ? `<span class="itin-alt"> · Alt: ${n.alt.name}</span>`
+        : '';
+      return `<div class="itin-row ${isDesolation ? 'summit' : ''}">
+        <span class="itin-night">Night ${n.night}</span>
+        <span class="itin-date">${fmt(n.date)}</span>
+        <span class="itin-camp">${isDesolation ? '⛺ ' : ''}${n.primary.name}${altHtml}</span>
+      </div>`;
+    }).join('');
+
+    const queueRows = buildQueue(D).map((q, qi) => `
+      <div class="queue-row">
+        <span class="queue-num">${qi + 1}</span>
+        <span class="queue-body">
+          <strong>${q.camp.name}</strong> — ${q.dates}
+          <span class="queue-note">${q.note}${q.camp.sites ? ' · ' + q.camp.sites : ''}</span>
+        </span>
+      </div>`).join('');
+
+    return `
+      <div class="card ${isTop ? 'card-top' : ''}" id="${cardId}"
+           onclick="toggleCard('${cardId}', '${namespace}')">
+        <div class="card-header">
+          <div class="card-priority">#${idx + 1}</div>
+          <div class="card-info">
+            ${labelHtml}
+            <div class="card-dates">Desolation: <strong>${fmt(D)} &amp; ${fmt(D2)}</strong></div>
+            <div class="card-trip">Trip: ${fmt(addDays(D,-2))} – ${fmt(addDays(D,4))}</div>
+          </div>
+          <div class="card-chevron">▾</div>
+        </div>
+        <div class="card-body">
+          <div class="block-label">7-Night Itinerary</div>
+          ${itinRows}
+          <div class="block-label" style="margin-top:1rem">Book in this order on rec.gov</div>
+          ${queueRows}
+          <div class="queue-fallback">
+            ↳ Fallback: Ten Mile Island for Night 2 or Night 5 if Cat Island is unavailable
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ─── Expand / collapse ─────────────────────────────────────────────
+  const openCards = {}; // namespace → currently open card id
+
+  function toggleCard(cardId, namespace) {
+    const card = document.getElementById(cardId);
+    const wasOpen = card.classList.contains('open');
+
+    // Close currently open card in this namespace
+    if (openCards[namespace]) {
+      const prev = document.getElementById(openCards[namespace]);
+      if (prev) prev.classList.remove('open');
+    }
+
+    if (!wasOpen) {
+      card.classList.add('open');
+      openCards[namespace] = cardId;
+    } else {
+      openCards[namespace] = null;
+    }
+  }
+
+  // ─── Party toggle ──────────────────────────────────────────────────
+  function setParty(size) {
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.classList.toggle('active', parseInt(btn.dataset.size) === size);
+    });
+    document.getElementById('party-note').classList.toggle('hidden', size === 2);
+  }
+
+  // ─── September section ─────────────────────────────────────────────
+  function toggleSept() {
+    const body = document.getElementById('sept-body');
+    const chevron = document.getElementById('sept-chevron');
+    const btn = document.getElementById('sept-btn');
+    const isOpen = body.classList.toggle('open');
+    chevron.textContent = isOpen ? '▴' : '▾';
+    btn.setAttribute('aria-expanded', isOpen);
+  }
+
+  // ─── Init ──────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('july-cards').innerHTML =
+      JULY_PRIORITIES.map((p, i) => renderCard(p, i, 'july')).join('');
+    document.getElementById('sept-cards').innerHTML =
+      SEPT_PRIORITIES.map((p, i) => renderCard(p, i, 'sept')).join('');
+  });
+</script>
+</body>
+</html>

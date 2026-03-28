@@ -396,8 +396,10 @@
   ];
 
   // September: earliest first
-  const SEPT_PRIORITIES = Array.from({ length: 13 }, (_, i) => ({
-    d1: new Date(2026, 8, 4 + i),
+  // D = Desolation Night 1; trip Night 1 = D−2, so D=Sept 6 → Night 1=Sept 4 (earliest)
+  // D=Sept 16 → exit day Sept 20 (last day of window)
+  const SEPT_PRIORITIES = Array.from({ length: 11 }, (_, i) => ({
+    d1: new Date(2026, 8, 6 + i),
     label: i === 0 ? 'Earliest Available' : null,
   }));
 

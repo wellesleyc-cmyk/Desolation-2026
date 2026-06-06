@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ross Lake — Desolation Peak Kayak Expedition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root {
+    --ink: #1a1c18;
+    --paper: #f4f0e8;
+    --muted: #6b6b5e;
+    --accent: #2d5a3d;
+    --accent-light: #4a8c60;
+    --water: #3b7cb8;
+    --water-light: #a8c8e8;
+    --gold: #c8902a;
+    --rule: #d4cfc0;
+    --danger: #8b3a2a;
+    --option-a: #2d5a3d;
+    --option-b: #2a4a7a;
+    --option-c: #7a3a6a;
+    --card-bg: #faf7f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* MASTHEAD */
+  .masthead {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .masthead::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(45,90,61,0.3) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 50%, rgba(59,124,184,0.2) 0%, transparent 60%);
+  }
+  .masthead-inner { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+  .masthead-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--accent-light);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .masthead h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+  }
+  .masthead h1 em {
+    font-style: italic;
+    color: var(--water-light);
+  }
+  .masthead-sub {
+    font-size: 1rem;
+    color: rgba(244,240,232,0.65);
+    font-weight: 300;
+    margin-top: 0.75rem;
+  }
+  .masthead-divider {
+    width: 60px; height: 1px;
+    background: var(--accent-light);
+    margin: 1.25rem auto;
+  }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* OVERVIEW STATS */
+  .stats-bar {
+    background: var(--accent);
+    color: white;
+    padding: 1rem 1.5rem;
+  }
+  .stats-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; flex-wrap: wrap; gap: 0.5rem 2rem;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+  }
+  .stat-item { display: flex; align-items: center; gap: 0.4rem; }
+  .stat-label { opacity: 0.7; }
+  .stat-value { font-weight: 500; }
+
+  /* SECTION HEADERS */
+  .section {
+    padding: 2.5rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section:last-child { border-bottom: none; }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: 1.25rem;
+  }
+
+  /* MAP */
+  #map {
+    width: 100%;
+    height: 500px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    margin-bottom: 0.75rem;
+  }
+  .map-legend {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem;
+    font-size: 0.8rem; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 0.5rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.35rem; }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px currentColor;
+    flex-shrink: 0;
+  }
+  .map-note {
+    font-size: 0.78rem; color: var(--muted);
+    font-style: italic;
+  }
+
+  /* MAP LABELS */
+  .leaflet-tooltip.map-label {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--ink);
+    font-weight: 500;
+    white-space: nowrap;
+    text-shadow:
+      0 0 3px var(--paper),
+      0 0 3px var(--paper),
+      0 0 5px var(--paper),
+      0 0 5px var(--paper);
+    padding: 0;
+  }
+  .leaflet-tooltip.map-label::before { display: none; }
+
+  /* CAMPSITES TABLE */
+  .camps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .camp-card {
+    background: var(--card-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.9rem 1rem;
+    display: flex; flex-direction: column; gap: 0.25rem;
+  }
+  .camp-card.primary { border-left: 3px solid var(--accent); }
+  .camp-card.secondary { border-left: 3px solid var(--water); }
+  .camp-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .camp-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+  }
+  .camp-notes { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
+  .camp-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    align-self: flex-start;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-primary { background: rgba(45,90,61,0.12); color: var(--accent); }
+  .badge-water { background: rgba(59,124,184,0.12); color: var(--water); }
+  .badge-alt { background: rgba(200,144,42,0.12); color: var(--gold); }
+
+  /* ITINERARY OPTIONS */
+  .options-tabs {
+    display: flex; gap: 0.5rem;
+    border-bottom: 2px solid var(--rule);
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 0.6rem 1.1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .tab-btn[data-option="A"].active { border-bottom-color: var(--option-a); }
+  .tab-btn[data-option="B"].active { border-bottom-color: var(--option-b); }
+  .tab-btn[data-option="C"].active { border-bottom-color: var(--option-c); }
+
+  .option-panel { display: none; }
+  .option-panel.active { display: block; }
+
+  .option-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .option-title-block {}
+  .option-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .option-tag.a { color: var(--option-a); }
+  .option-tag.b { color: var(--option-b); }
+  .option-tag.c { color: var(--option-c); }
+  .option-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+  .option-subtitle { font-size: 0.9rem; color: var(--muted); margin-top: 0.15rem; }
+  .option-badges {
+    display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: flex-start;
+  }
+  .o-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .o-badge.green { background: rgba(45,90,61,0.1); color: var(--accent); border: 1px solid rgba(45,90,61,0.2); }
+  .o-badge.blue { background: rgba(59,124,184,0.1); color: var(--water); border: 1px solid rgba(59,124,184,0.2); }
+  .o-badge.purple { background: rgba(122,58,106,0.1); color: var(--option-c); border: 1px solid rgba(122,58,106,0.2); }
+  .o-badge.gold { background: rgba(200,144,42,0.1); color: var(--gold); border: 1px solid rgba(200,144,42,0.2); }
+
+  /* DAYS */
+  .days-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .day-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--card-bg);
+  }
+  .day-label {
+    background: var(--ink);
+    color: var(--paper);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+  }
+  .day-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+  .day-word {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-top: 0.15rem;
+  }
+  .day-content { padding: 0.75rem 1rem; }
+  .day-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+  .day-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+  .day-stats {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    margin-top: 0.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .day-stat { display: flex; align-items: center; gap: 0.3rem; }
+  .day-stat svg { opacity: 0.6; flex-shrink: 0; }
+  .day-notes {
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-style: italic;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.4rem;
+  }
+
+  /* Camp targets */
+  .camp-targets {
+    display: flex; flex-direction: column; gap: 0.25rem;
+    margin-top: 0.45rem;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.45rem;
+  }
+  .camp-target {
+    display: flex; align-items: flex-start; gap: 0.45rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+  .target-pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+  .pill-primary { background: rgba(45,90,61,0.12); color: var(--accent); border: 1px solid rgba(45,90,61,0.25); }
+  .pill-alt { background: rgba(59,124,184,0.1); color: var(--water); border: 1px solid rgba(59,124,184,0.2); }
+  .pill-summit { background: rgba(139,58,42,0.1); color: var(--danger); border: 1px solid rgba(139,58,42,0.2); }
+  .camp-target-name { font-weight: 600; }
+  .camp-target-detail { color: var(--muted); }
+
+  /* COLOR ACCENTS BY OPTION */
+  .option-panel[data-option="A"] .day-label { background: var(--option-a); }
+  .option-panel[data-option="B"] .day-label { background: var(--option-b); }
+  .option-panel[data-option="C"] .day-label { background: var(--option-c); }
+
+  /* NOTES + TIPS */
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .tip-card {
+    background: var(--card-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1rem 1.1rem;
+  }
+  .tip-icon { font-size: 1.3rem; margin-bottom: 0.4rem; }
+  .tip-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.35rem;
+  }
+  .tip-body { font-size: 0.85rem; color: var(--muted); line-height: 1.55; }
+
+  /* PERMIT CHECKLIST */
+  .checklist {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .checklist li {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+    background: var(--card-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+  .check-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    background: var(--accent);
+    color: white;
+    min-width: 20px; height: 20px;
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .check-text strong { font-weight: 600; display: block; }
+  .check-text span { font-size: 0.82rem; color: var(--muted); }
+
+  /* WARNING BOX */
+  .warning {
+    background: rgba(139,58,42,0.06);
+    border: 1px solid rgba(139,58,42,0.2);
+    border-left: 3px solid var(--danger);
+    border-radius: 4px;
+    padding: 0.9rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+  }
+  .warning strong { color: var(--danger); }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    color: rgba(244,240,232,0.5);
+    text-align: center;
+    padding: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 600px) {
+    .masthead { padding: 2rem 1.25rem 1.75rem; }
+    .section { padding: 2rem 0; }
+    #map { height: 380px; }
+    .day-row { grid-template-columns: 60px 1fr; }
+    .day-number { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-eyebrow">North Cascades National Park Complex · July 2026</div>
+    <h1>Ross Lake &amp; <em>Desolation Peak</em></h1>
+    <div class="masthead-divider"></div>
+    <div class="masthead-sub">Kayak expedition planning · Wellesley &amp; Phil · 6–7 days</div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item"><span class="stat-label">Lake length</span><span class="stat-value">23 mi</span></div>
+    <div class="stat-item"><span class="stat-label">Resort → Desolation dock</span><span class="stat-value">~14 mi paddle</span></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- MAP SECTION -->
+  <div class="section">
+    <div class="section-label">Overview</div>
+    <div class="section-title">The Lake &amp; Key Locations</div>
+    <div id="map"></div>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="color:#2d5a3d; background:#2d5a3d;"></div>Preferred boat-in camps</div>
+      <div class="legend-item"><div class="legend-dot" style="color:#3b7cb8; background:#3b7cb8;"></div>Alt / layover camps</div>
+      <div class="legend-item"><div class="legend-dot" style="color:#c8902a; background:#c8902a;"></div>Key trailheads</div>
+      <div class="legend-item"><div class="legend-dot" style="color:#8b3a2a; background:#8b3a2a;"></div>Summits</div>
+    </div>
+    <div class="map-note">Topo basemap via ESRI World Topo. Zoom in for terrain detail. Click any marker for details. All camps are boat-in unless noted.</div>
+  </div>
+
+  <!-- CAMPSITES -->
+  <div class="section">
+    <div class="section-label">Campsite Reference</div>
+    <div class="section-title">Boat-In Camps: Resort to Lightning Creek</div>
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:0.5rem;">All distances from Ross Dam (essentially the resort launch). All sites require NPS backcountry permit. Boat dock and site count from official NPS trip planner.</p>
+    <div class="camps-grid">
+
+      <div class="camp-card secondary">
+        <div class="camp-name">Cougar Island</div>
+        <div class="camp-meta"><span>2.4 mi</span><span>2 sites</span><span>No dock</span></div>
+        <div class="camp-notes">Good short Day 1 option. Island setting, bear-safe. Close enough to feel like a warmup.</div>
+        <div class="camp-badge badge-water">Alt / Short Day</div>
+      </div>
+
+      <div class="camp-card secondary">
+        <div class="camp-name">Big Beaver</div>
+        <div class="camp-meta"><span>4.6 mi</span><span>7 sites</span><span>Dock ✓</span></div>
+        <div class="camp-notes">Largest campground south of mid-lake. Big Beaver Creek canyon explorable by kayak. Good Day 1 if late start.</div>
+        <div class="camp-badge badge-water">Good Day 1 Late Start</div>
+      </div>
+
+      <div class="camp-card secondary">
+        <div class="camp-name">Rainbow Point</div>
+        <div class="camp-meta"><span>6 mi</span><span>3 sites</span><span>Dock ✓</span></div>
+        <div class="camp-notes">Mid-lake with good views. East Bank Trail access. Solid stop on the way back south.</div>
+        <div class="camp-badge badge-alt">Good Southbound Camp</div>
+      </div>
+
+      <div class="camp-card primary">
+        <div class="camp-name">Devil's Junction</div>
+        <div class="camp-meta"><span>9 mi</span><span>1 site</span><span>Dock ✓</span><span>Trail ✓</span></div>
+        <div class="camp-notes">Trailhead for Devil's Dome route if we choose this option.</div>
+        <div class="camp-badge badge-primary">Devil's Dome TH</div>
+      </div>
+
+      <div class="camp-card primary">
+        <div class="camp-name">Ten Mile Island</div>
+        <div class="camp-meta"><span>10 mi</span><span>3 sites</span><span>No dock</span></div>
+        <div class="camp-notes">Island camp at mid-lake. Good views in all directions. Popular staging point.</div>
+        <div class="camp-badge badge-primary">Preferred Mid-Lake</div>
+      </div>
+
+      <div class="camp-card secondary">
+        <div class="camp-name">Dry Creek</div>
+        <div class="camp-meta"><span>10.4 mi</span><span>4 sites</span><span>Dock ✓</span></div>
+        <div class="camp-notes">Just south of Ponderosa. Good fallback if Lightning Creek is taken.</div>
+        <div class="camp-badge badge-water">Fallback Option</div>
+      </div>
+
+      <div class="camp-card secondary">
+        <div class="camp-name">Ponderosa</div>
+        <div class="camp-meta"><span>11 mi</span><span>2 sites</span><span>Dock ✓</span></div>
+        <div class="camp-notes">Good layover spot southbound. Great for the return day.</div>
+        <div class="camp-badge badge-water">Good Return Camp</div>
+      </div>
+
+      <div class="camp-card primary">
+        <div class="camp-name">Lightning Creek Boat Camp</div>
+        <div class="camp-meta"><span>12 mi</span><span>5 sites</span><span>Dock ✓</span><span>Trail ✓</span></div>
+        <div class="camp-notes">1 mile south of the Desolation dock.</div>
+        <div class="camp-badge badge-primary">Near Desolation TH · Strong Fallback</div>
+      </div>
+
+      <div class="camp-card primary">
+        <div class="camp-name">Cat Island</div>
+        <div class="camp-meta"><span>13 mi</span><span>4 sites</span><span>Dock ✓</span></div>
+        <div class="camp-notes">We've been looking at Cat Island for decades. Let's visit and stay the night.</div>
+        <div class="camp-badge badge-primary">Classic Staging Camp</div>
+      </div>
+
+      <div class="camp-card secondary">
+        <div class="camp-name">Little Beaver</div>
+        <div class="camp-meta"><span>15 mi</span><span>5 sites</span><span>Dock ✓</span></div>
+        <div class="camp-notes">Speaks for itself.</div>
+        <div class="camp-badge badge-alt">Bonus / Explore North</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ITINERARY OPTIONS -->
+  <div class="section">
+    <div class="section-label">Trip Planning</div>
+    <div class="section-title">Three Itinerary Options</div>
+    <p style="font-size:0.9rem; color:var(--muted); margin-bottom:0.6rem;">
+      All options share these constants: late Day 1 start (Marblemount permit pickup + Seattle drive), island camps as primary targets on the lake with named alternates if unavailable on April 15, and at least one night at Desolation Camp on the mountain. Each day shows a <strong style="color:var(--accent)">Primary</strong> camp and an <span style="color:var(--water)">Alternate</span>.
+    </p>
+    <div class="warning" style="margin-bottom:1.25rem; margin-top:0;">
+      <strong>April 15 booking priority:</strong> Cat Island (4 sites) and Ten Mile Island (3 sites) are the island targets — book these first.
+    </div>
+
+    <div class="options-tabs">
+      <button class="tab-btn active" data-option="A" onclick="showOption('A')">Option A — Classic Island Route</button>
+      <button class="tab-btn" data-option="B" onclick="showOption('B')">Option B — Two Nights on the Mountain</button>
+      <button class="tab-btn" data-option="C" onclick="showOption('C')">Option C — Devil's Dome Side Trip</button>
+    </div>
+
+    <!-- OPTION A -->
+    <div class="option-panel active" data-option="A">
+      <div class="option-header">
+        <div class="option-title-block">
+          <div class="option-tag a">Option A · 6 Days</div>
+          <div class="option-title">Classic Island Route</div>
+          <div class="option-subtitle">Ten Mile Island northbound, Cat Island as Desolation base, one night on the mountain. Clean and unhurried.</div>
+        </div>
+        <div class="option-badges">
+          <span class="o-badge green">6 nights</span>
+          <span class="o-badge blue">~28 mi paddling</span>
+          <span class="o-badge green">1 summit night</span>
+          <span class="o-badge gold">Island camps priority</span>
+        </div>
+      </div>
+      <div class="days-list">
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">1</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Marblemount → Midlake (4–6 mi)</div>
+            <div class="day-desc">Pick up permits at Marblemount WIC (opens 8am). Drive to SR-20 milepost 134, hike 1 mi down to the dock, call resort for shuttle. Launch by midday. Short first paddle — get comfortable with the kayaks, stay ahead of afternoon winds. Explore Big Beaver Creek canyon by kayak once camp is set.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 4–6 mi paddle</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Big Beaver</span> <span class="camp-target-detail">— 4.6 mi, 7 sites, dock. Largest camp on south half; easy creek exploration.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Cougar Island</span> <span class="camp-target-detail">— 2.4 mi, 2 sites. Shorter if very late start; island means no bears.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">2</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Push North to Ten Mile Island (~5–8 mi)</div>
+            <div class="day-desc">Full paddling day — early start. Pass Rainbow Point and Devil's Junction. Ten Mile Island sits mid-lake with open-water views in all directions and natural wind buffer. Good position for the Desolation push north tomorrow.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 5–8 mi paddle</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Ten Mile Island</span> <span class="camp-target-detail">— 10 mi from resort, 3 sites, no dock. Island camp, open lake views. ~3 mi from Desolation dock.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Dry Creek</span> <span class="camp-target-detail">— 10.4 mi, 4 sites, dock. Just past Ten Mile; solid fallback if island is booked.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Ponderosa</span> <span class="camp-target-detail">— 11 mi, 2 sites, dock. Another fallback; pleasant camp, ~2 mi from Desolation dock.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">3</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Ten Mile → Lightning Creek, then Desolation Camp</div>
+            <div class="day-desc">Short paddle north to the Desolation dock (~2–4 mi from Ten Mile Island). Stash kayaks and begin ascent early. Hike all the way to Desolation Camp (~4.2 mi, just below summit) — no hurry to come back down today. Visit Jim at the lookout in the late afternoon. First night on the mountain.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 2–4 mi to dock</div>
+              <div class="day-stat">🥾 ~4.2 mi to Desolation Camp</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-summit">Summit</span><span><span class="camp-target-name">Desolation Camp</span> <span class="camp-target-detail">— 1 mi below summit. Separate NPS permit required (recreation.gov). No camping at lookout itself.</span></span></div>
+            </div>
+            <div class="day-notes">Carry 4–6L water per person from the lake. No reliable sources on the trail above. Start the hike no later than 8am.</div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">4</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Summit Morning → Descend → Cat Island</div>
+            <div class="day-desc">Sunrise from Desolation Camp. One more visit to Jim and the lookout in the morning light. Descend to the Desolation dock (~5.1 mi), retrieve kayaks, and paddle 1 mile south to Cat Island. Rest and recover on the island — swim, watch the lake, do absolutely nothing.</div>
+            <div class="day-stats">
+              <div class="day-stat">🥾 5.1 mi descent</div>
+              <div class="day-stat">🚣 ~1 mi south</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Cat Island</span> <span class="camp-target-detail">— 13 mi, 4 sites, dock. Classic island camp at foot of Desolation ridge. Iconic post-summit recovery.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Lightning Creek Boat Camp</span> <span class="camp-target-detail">— stay put at the dock camp if legs are done. Best facilities on the lake.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">5</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Cat Island → Rainbow Point (7 mi south)</div>
+            <div class="day-desc">Rest day behind you, full paddle day south. Pass mid-lake coves, waterfalls tumbling off the western slopes, and the Devil's Creek canyon. Rainbow Point has East Bank Trail access for an evening walk if the legs are willing.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 ~7 mi paddle</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Rainbow Point</span> <span class="camp-target-detail">— 6 mi from resort, 3 sites, dock. Good staging for the final paddle home.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Big Beaver</span> <span class="camp-target-detail">— 4.6 mi, 7 sites, dock. Stop earlier if tired; more campsite options.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">6</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Home — Rainbow Point → Resort (6 mi)</div>
+            <div class="day-desc">Final morning paddle back to the resort dock. Return kayaks, catch the shuttle across to the lower dock, hike 1 mi up to the trailhead parking. Drive home on SR-20 with the North Cascades in the rearview.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 6 mi paddle</div>
+              <div class="day-stat">🎯 Return to resort</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- OPTION B -->
+    <div class="option-panel" data-option="B">
+      <div class="option-header">
+        <div class="option-title-block">
+          <div class="option-tag b">Option B · 7 Days</div>
+          <div class="option-title">Two Nights on the Mountain</div>
+          <div class="option-subtitle">The Jim Version — two nights at Desolation Camp, sunrise and sunset from the lookout, unhurried time with an old friend. West shore exploration on the return.</div>
+        </div>
+        <div class="option-badges">
+          <span class="o-badge blue">7 days</span>
+          <span class="o-badge blue">~28 mi paddling</span>
+          <span class="o-badge blue">2 summit nights</span>
+          <span class="o-badge gold">West shore exploration</span>
+        </div>
+      </div>
+      <div class="days-list">
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">1</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Marblemount → Big Beaver (4–5 mi)</div>
+            <div class="day-desc">7 days means no need to rush, but push a little further than Option A's Day 1 — positioning for a longer northbound push on Day 2. Get on the water, get comfortable, arrive well before winds build. Big Beaver Creek kayak exploration in the evening.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 4–5 mi paddle</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Big Beaver</span> <span class="camp-target-detail">— 4.6 mi, 7 sites, dock. Most options south of mid-lake; creek to explore.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Cougar Island</span> <span class="camp-target-detail">— 2.4 mi, 2 sites. If very late start; island setting, no bears.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">2</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Push North — Ten Mile Island or Cat Island (8–13 mi)</div>
+            <div class="day-desc">The big paddling day. Early start mandatory. Two strong targets: Cat Island (13 mi) puts you 1 mile from the Desolation dock — a short Day 3 morning before the ascent. Ten Mile Island (10 mi) is the safer distance with a ~4 mi paddle to the dock on Day 3. Either works; Cat Island is the bolder choice if conditions are good.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 8–13 mi paddle</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Cat Island</span> <span class="camp-target-detail">— 13 mi, 4 sites, dock. 1 mile from Desolation dock. Positions you perfectly for an easy Day 3 morning paddle before the ascent.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Ten Mile Island</span> <span class="camp-target-detail">— 10 mi, 3 sites, no dock. Island views, ~4 mi from dock. Solid if Cat Island is unavailable or conditions shorten the day.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">3</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Ten Mile → Lightning Creek → Desolation Camp (Night 1)</div>
+            <div class="day-desc">Short paddle to the Desolation dock (~2–4 mi from Ten Mile Island), then begin the ascent. Take it at a comfortable pace — you have two nights up there. Settle into Desolation Camp and head up to the lookout in the late afternoon. First sunset with Jim.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 2–4 mi to dock</div>
+              <div class="day-stat">🥾 ~4.2 mi to camp</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-summit">Summit Night 1</span><span><span class="camp-target-name">Desolation Camp</span> <span class="camp-target-detail">— Separate NPS permit required. Carry 4–6L water from the lake. No sources on trail.</span></span></div>
+            </div>
+            <div class="day-notes">April 15 booking priority: secure 2 consecutive Desolation Camp nights first — those dates drive the entire itinerary. Everything else gets built around them.</div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">4</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Full Day on the Mountain (Summit Night 2)</div>
+            <div class="day-desc">Sunrise from Desolation Camp. This is the day you came for — no schedule, no paddle ahead of you. Morning at the lookout. Afternoon wandering the summit ridge. Long conversation with Jim. Watch the weather systems move through the North Cascades from 6,085 feet. Read Kerouac. Sunset again. Two nights makes the difference between passing through and actually being there.</div>
+            <div class="day-stats">
+              <div class="day-stat">🥾 Short ridge walks</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-summit">Summit Night 2</span><span><span class="camp-target-name">Desolation Camp</span> <span class="camp-target-detail">— Second permit night. Resupply water by descending ~1.5 mi to the trickle stream (unreliable in July — carry extra).</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">5</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Descend → Cat Island</div>
+            <div class="day-desc">Morning descent — full 9.3 mi back to the Desolation dock, 4,543 ft down. Retrieve kayaks and paddle 1 mile south to Cat Island. Pure recovery mode: swim off the dock, lie in the sun, eat everything. The island camp after a two-night summit stay is deeply satisfying.</div>
+            <div class="day-stats">
+              <div class="day-stat">🥾 5.1 mi descent to dock</div>
+              <div class="day-stat">🚣 ~1 mi to Cat Island</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Cat Island</span> <span class="camp-target-detail">— 13 mi, 4 sites, dock. The post-summit island camp. Looking back up at Desolation from the lake is something.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Ten Mile Island</span> <span class="camp-target-detail">— 10 mi, 3 sites, no dock. Preferred backup if Cat Island is unavailable; island setting, open lake views.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">6</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">West Shore Exploration — Paddle South Along the West Bank (~7 mi)</div>
+            <div class="day-desc">The west shoreline of Ross Lake is a different world from the East Bank Trail. Coves, waterfalls dropping off the Skagit Range, and terrain you've never seen from the trail side. Hug the west bank south, stop where the water falls, end the day at Big Beaver for a final evening in the canyon.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 ~7 mi paddle</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Big Beaver</span> <span class="camp-target-detail">— 4.6 mi, 7 sites, dock. Best camp for a final evening in the Big Beaver Creek canyon.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Rainbow Point</span> <span class="camp-target-detail">— 6 mi from resort, 3 sites, dock. If you want a shorter final morning paddle home.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">7</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Home — Final Paddle to Resort</div>
+            <div class="day-desc">Easy morning paddle south to the resort dock. Return kayaks, catch shuttle across, hike up to trailhead. Drive home.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 4–6 mi paddle</div>
+              <div class="day-stat">🎯 Return to resort</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- OPTION C -->
+    <div class="option-panel" data-option="C">
+      <div class="option-header">
+        <div class="option-title-block">
+          <div class="option-tag c">Option C · 7 Days</div>
+          <div class="option-title">Desolation + Devil's Dome Side Trip</div>
+          <div class="option-subtitle">Two serious summits. Devil's Dome from Devil's Junction on the way north, then one night at Desolation Camp. Island camps bookend the trip.</div>
+        </div>
+        <div class="option-badges">
+          <span class="o-badge purple">7 nights</span>
+          <span class="o-badge purple">~28 mi paddling</span>
+          <span class="o-badge purple">2 major summits</span>
+          <span class="o-badge gold">Strenuous</span>
+        </div>
+      </div>
+      <div class="days-list">
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">1</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Marblemount → Short First Paddle (4–5 mi)</div>
+            <div class="day-desc">Late permit pickup start. Short first day — legs need to be fresh for Devil's Dome on Day 3. Big Beaver Creek exploration by kayak in the evening.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 4–5 mi paddle</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Big Beaver</span> <span class="camp-target-detail">— 4.6 mi, 7 sites, dock. Best site count south of mid-lake; good first camp.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">May Creek</span> <span class="camp-target-detail">— 5 mi, 1 site, dock. Quiet solo-style camp just past Big Beaver.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">2</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Push to Devil's Junction — Dome Prep (4–5 mi)</div>
+            <div class="day-desc">Shorter paddle day intentionally — arrive early, rest, scout the trailhead, pre-load water for tomorrow's dry climb. Devil's Junction is the launch point for the Dome. Only 1 campsite here, so it's a permit-critical booking.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 4–5 mi paddle</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Devil's Junction</span> <span class="camp-target-detail">— 9 mi, <strong>1 site only</strong>, dock + trail. Dome trailhead. Book this one the moment the window opens.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Rainbow Point</span> <span class="camp-target-detail">— 6 mi, 3 sites, dock. If Junction unavailable — adds 6 miles roundtrip to the Dome hike tomorrow.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">3</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Devil's Dome Day (~13 mi RT, 5,000 ft)</div>
+            <div class="day-desc">Earliest possible start. The climb from Devil's Junction to the Dome is relentless and overgrown — first ~3 miles through dense forest with significant blowdowns, then it opens onto Jackita Ridge with staggering views of Jack Mountain and the Picket Range. Dispersed camping at or near the summit is permit-free (Pasayten Wilderness). Option: stay overnight at the Dome for sunrise, then descend Day 4 morning.</div>
+            <div class="day-stats">
+              <div class="day-stat">🥾 ~13 mi RT</div>
+              <div class="day-stat">⬆️ ~5,000 ft gain</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Devil's Junction (return)</span> <span class="camp-target-detail">— Back to the lake camp same day. Long but doable for fit hikers.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Overnight Option</span><span><span class="camp-target-name">Devil's Dome / Bear Skull area</span> <span class="camp-target-detail">— Dispersed camp near summit, no permit needed in Pasayten. Adds 1 day to itinerary but extraordinary sunrise.</span></span></div>
+            </div>
+            <div class="day-notes">Carry 5L+ water — sources above the Pasayten boundary are unreliable in July. The descent to the lake is described by nearly every trip report as punishing overgrowth. Budget 8+ hours.</div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">4</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Recovery Paddle — Devil's Junction → Ten Mile Island (1–2 mi)</div>
+            <div class="day-desc">Very short paddle north. Legs need a day between the Dome and Desolation. Ten Mile Island is a perfect rest camp — open views, island setting, ~3 miles from the Desolation dock. Rest, swim, eat. Tomorrow is a big day.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 1–2 mi paddle</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Ten Mile Island</span> <span class="camp-target-detail">— 10 mi, 3 sites, no dock. Island rest day. ~3 mi from Desolation dock tomorrow.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Ponderosa</span> <span class="camp-target-detail">— 11 mi, 2 sites, dock. Slightly closer to the Desolation trailhead.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">5</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Ten Mile → Desolation Camp</div>
+            <div class="day-desc">Paddle north to the Desolation dock (~3 mi from Ten Mile Island). Stash kayaks and begin the Desolation ascent — different character from the Dome entirely. Drier, more barren, more exposed above treeline. Arrive at Desolation Camp, head to the lookout. Say hello to Jim.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 ~2 mi to dock</div>
+              <div class="day-stat">🥾 ~4.2 mi to Desolation Camp</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-summit">Summit</span><span><span class="camp-target-name">Desolation Camp</span> <span class="camp-target-detail">— Separate NPS permit. Carry 4–6L from the lake. No sources on the trail.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">6</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">Descend → Cat Island</div>
+            <div class="day-desc">Full descent to the Desolation dock, then paddle 1 mile south to Cat Island. Recovery island camp — same move as Option B Day 5. Looking back up at the ridge you climbed twice in a week is its own reward.</div>
+            <div class="day-stats">
+              <div class="day-stat">🥾 5.1 mi descent</div>
+              <div class="day-stat">🚣 ~1 mi to Cat Island</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Primary</span><span><span class="camp-target-name">Cat Island</span> <span class="camp-target-detail">— 13 mi, 4 sites, dock. Post-Desolation island recovery. Classic.</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Alternate</span><span><span class="camp-target-name">Lightning Creek Boat Camp</span> <span class="camp-target-detail">— Stay put if legs are spent. Best facilities on the lake.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label"><div class="day-number">7</div><div class="day-word">Day</div></div>
+          <div class="day-content">
+            <div class="day-title">South to Rainbow Point, then Home</div>
+            <div class="day-desc">Paddle south past mid-lake coves and waterfalls. Option to push all the way to the resort today (13 mi from Cat Island) or split into a Rainbow Point camp + final morning. Two serious North Cascades summits in one lake trip.</div>
+            <div class="day-stats">
+              <div class="day-stat">🚣 6–13 mi paddle</div>
+              <div class="day-stat">🎯 Return to resort</div>
+            </div>
+            <div class="camp-targets">
+              <div class="camp-target"><span class="target-pill pill-primary">Option: Split</span><span><span class="camp-target-name">Rainbow Point</span> <span class="camp-target-detail">— 6 mi from resort, 3 sites. Camp here, home in the morning (adds Day 8 but gentler exit).</span></span></div>
+              <div class="camp-target"><span class="target-pill pill-alt">Option: Push through</span><span><span class="camp-target-name">Resort same day</span> <span class="camp-target-detail">— ~13 mi from Cat Island. Long but doable; be off the water by early afternoon.</span></span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="warning">
+        <strong>Heads up on Devil's Dome:</strong> The descent from the summit to Devil's Junction is almost universally described as the hardest part — overgrown, significant blowdowns, no mercy. Budget 8+ hours for the full RT. A rest day between the Dome (Day 3) and Desolation (Day 5) is not optional — it's baked into this itinerary as Day 4 on Ten Mile Island.
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGISTICS -->
+  <div class="section">
+    <div class="section-label">Logistics</div>
+    <div class="section-title">Permit &amp; Reservation Sequence (April 15 Lottery Day)</div>
+    <ul class="checklist">
+      <li>
+        <div class="check-num">1</div>
+        <div class="check-text">
+          <strong>Lottery spots — NPS recreation.gov backcountry permits</strong>
+          <span>On April 15, book in this priority order: (1) <strong>Cat Island</strong> and <strong>Ten Mile Island</strong> — island camps fill fast; (2) <strong>Lightning Creek Boat Camp</strong> — Desolation trailhead camp; (3) <strong>Desolation Camp</strong> on the mountain — this is a <em>separate permit category</em> from lake camps, book simultaneously; (4) <strong>Devil's Junction</strong> if doing Option C — only 1 site, will disappear immediately; (5) alternates: Dry Creek, Ponderosa, Rainbow Point, Big Beaver as fallbacks for any unavailable primary. Have your full itinerary pre-planned so you can move fast across multiple nights.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-num">2</div>
+        <div class="check-text">
+          <strong>Ross Lake Resort kayak reservation</strong>
+          <span>Call (206) 386-4437 or visit rosslakeresort.com. Confirm kayak rental dates and number of boats. Reservations required — especially July. Confirm portage shuttle from the lower dock to resort.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-num">3</div>
+        <div class="check-text">
+          <strong>Walk-up permits at Marblemount WIC on departure morning</strong>
+          <span>Even with a recreation.gov reservation, you pick up physical permits at the Wilderness Information Center in Marblemount the day of your trip. Opens 8am. Bring printed/digital confirmation. Budget 30–45 min here. Drive time from Seattle: ~2.5 hrs to Marblemount, then another 30 min to the trailhead.</span>
+        </div>
+      </li>
+      <li>
+        <div class="check-num">4</div>
+        <div class="check-text">
+          <strong>Ross Dam trailhead parking</strong>
+          <span>Park at the Ross Lake/Dam Trailhead, milepost 134 on SR-20. Don't leave valuables. Hike 1 mi down to the dock, call the resort from the landline phone ($4/person each way for the shuttle). Shuttle operates 8am–7pm.</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- TIPS -->
+
+</div>
+
+<footer>
+  Ross Lake · North Cascades NP Complex · Wellesley &amp; Phil · July 2026 · Built for trip planning purposes only. Verify all conditions and permits with NPS and Ross Lake Resort.
+  &nbsp;·&nbsp; <a href="index.html" style="color:var(--accent-light)">Trip doc →</a>
+  &nbsp;·&nbsp; <a href="booking.html" style="color:var(--accent-light)">Booking guide →</a>
+</footer>
+
+<script>
+  window.onload = function() {
+  // Initialize Leaflet map with OpenTopoMap
+  const map = L.map('map', {
+    center: [48.835, -121.040],
+    zoom: 11,
+    scrollWheelZoom: true
+  });
+
+  // Use ESRI World Topo — reliable in sandboxed environments, good topo detail
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: 'Tiles © Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+  }).addTo(map);
+
+  // Helper: place a circle marker with permanent label and click popup
+  function placeMarker(lat, lng, color, radius, name, note) {
+    const m = L.circleMarker([lat, lng], {
+      radius,
+      fillColor: color,
+      color: 'white',
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.9
+    }).addTo(map);
+    m.bindTooltip(name, {
+      permanent: true,
+      direction: 'right',
+      className: 'map-label',
+      offset: [radius + 3, 0]
+    });
+    m.bindPopup(
+      `<strong style="font-family:serif">${name}</strong><br>` +
+      `<span style="font-size:12px">${note}</span>`
+    );
+    return m;
+  }
+
+  // Primary camps — green
+  const primaryCamps = [
+    { name: "Ten Mile Island",   lat: 48.8486, lng: -121.0178, note: "10 mi from resort. Island camp. 3 sites, no dock. Great views in all directions. Primary northbound staging." },
+    { name: "Cat Island",        lat: 48.8840, lng: -121.0385, note: "13 mi from resort. Island camp at foot of Desolation ridge. 4 sites, dock. Classic post-summit recovery camp." },
+    { name: "Devil's Junction",  lat: 48.8352, lng: -121.0239, note: "9 mi from resort. Devil's Dome trailhead. ONLY 1 SITE — book the moment the April 15 window opens." },
+    { name: "Lightning Creek",   lat: 48.8771, lng: -121.0223, note: "12 mi from resort. 5 sites, dock, vault toilet. Best facilities on the lake. Near Desolation trailhead." },
+  ];
+
+  // Alternate camps — blue
+  const altCamps = [
+    { name: "Cougar Island",  lat: 48.7525, lng: -121.0285, note: "2.4 mi from resort. Short Day 1 option. 2 sites, no dock. Island setting — good wind and bear protection." },
+    { name: "Big Beaver",     lat: 48.7749, lng: -121.0588, note: "4.6 mi from resort. 7 sites, dock. Explore Big Beaver Creek by kayak in the evening." },
+    { name: "May Creek",      lat: 48.7865, lng: -121.0303, note: "5 mi from resort. 1 site, dock. Quiet solo-style camp just past Big Beaver." },
+    { name: "Rainbow Point",  lat: 48.7995, lng: -121.0427, note: "6 mi from resort. 3 sites, dock. Good southbound return camp with East Bank Trail access." },
+    { name: "Dry Creek",      lat: 48.8561, lng: -121.0191, note: "10.4 mi from resort. 4 sites, dock. Strong fallback if Ten Mile Island is booked." },
+    { name: "Ponderosa",      lat: 48.8582, lng: -121.0199, note: "11 mi from resort. 2 sites, dock. Pleasant camp ~2 mi from Desolation dock." },
+    { name: "Little Beaver",  lat: 48.9149, lng: -121.0742, note: "15 mi from resort. 5 sites, dock. Northern extension option." },
+  ];
+
+  // Trailheads & landmarks — gold
+  const landmarks = [
+    { name: "Ross Lake Resort",       lat: 48.7355, lng: -121.0682, note: "Start/end point. Kayak rental, shuttle. No road access — hike in 1 mi from trailhead parking." },
+    { name: "Desolation Trailhead",   lat: 48.8960, lng: -121.0476, note: "~14 mi from resort. Kayaks stashed at dock here. Trailhead for Desolation Peak: 9.3 mi RT, 4,543 ft gain." },
+    { name: "Marblemount WIC",        lat: 48.5384, lng: -121.4481, note: "Wilderness Information Center. Pick up permits morning of departure. Opens 8am." },
+  ];
+
+  // Summits — red
+  const summits = [
+    { name: "Desolation Peak",  lat: 48.9113, lng: -121.0163, note: "Historic fire lookout, 6,102 ft. Jim Henterly, caretaker, in residence July–Sept. Kerouac spent 63 days here in 1956." },
+    { name: "Devil's Dome",     lat: 48.8238, lng: -120.9167, note: "6,982 ft. Panoramic views of Jack Mountain and the Pickets. Option C side trip from Devil's Junction." },
+  ];
+
+  primaryCamps.forEach(c => placeMarker(c.lat, c.lng, '#2d5a3d', 8,  c.name, c.note));
+  altCamps.forEach(c =>     placeMarker(c.lat, c.lng, '#3b7cb8', 7,  c.name, c.note));
+  landmarks.forEach(c =>    placeMarker(c.lat, c.lng, '#c8902a', 9,  c.name, c.note));
+  summits.forEach(c =>      placeMarker(c.lat, c.lng, '#8b3a2a', 10, c.name, c.note));
+
+  // Paddle route — lake spine S→N using corrected coordinates
+  const paddleRoute = [
+    [48.7355, -121.0682], // Ross Lake Resort
+    [48.7525, -121.0285], // Cougar Island
+    [48.7749, -121.0588], // Big Beaver
+    [48.7865, -121.0303], // May Creek
+    [48.7995, -121.0427], // Rainbow Point
+    [48.8352, -121.0239], // Devil's Junction
+    [48.8486, -121.0178], // Ten Mile Island
+    [48.8561, -121.0191], // Dry Creek
+    [48.8582, -121.0199], // Ponderosa
+    [48.8771, -121.0223], // Lightning Creek
+    [48.8840, -121.0385], // Cat Island
+    [48.9149, -121.0742], // Little Beaver
+  ];
+
+  L.polyline(paddleRoute, {
+    color: '#3b7cb8',
+    weight: 2,
+    opacity: 0.45,
+    dashArray: '5, 5'
+  }).addTo(map).bindPopup('Approximate paddle route (not exact shoreline)');
+
+  }; // end window.onload
+
+  // Tab switching — must be global scope for onclick attributes
+  function showOption(opt) {
+    document.querySelectorAll('.option-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.option-panel[data-option="${opt}"]`).classList.add('active');
+    document.querySelector(`.tab-btn[data-option="${opt}"]`).classList.add('active');
+  }
+</script>
+</body>
+</html>
